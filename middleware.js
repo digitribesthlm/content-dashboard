@@ -4,8 +4,8 @@ export function middleware(request) {
   const { pathname } = request.nextUrl;
   const authToken = request.cookies.get('auth-token');
 
-  // Protect dashboard routes
-  if (pathname.startsWith('/dashboard')) {
+  // Protect dashboard and selected-topics routes
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/selected-topics')) {
     if (!authToken) {
       return NextResponse.redirect(new URL('/', request.url));
     }
@@ -21,13 +21,10 @@ export function middleware(request) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
+    '/',
+    '/dashboard/:path*',
+    '/selected-topics/:path*',
+    // Exclude API routes and static files
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }; 
