@@ -3,6 +3,9 @@ import { useRouter } from 'next/router';
 
 const TopicDetail = ({ topic }) => {
   const router = useRouter();
+  const [note, setNote] = useState(topic.note || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('');
   const [status, setStatus] = useState(topic.status || 'active');
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -43,6 +46,39 @@ const TopicDetail = ({ topic }) => {
       alert('Failed to update status. Please try again.');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleNoteSave = async () => {
+    try {
+      setIsSaving(true);
+      setSaveStatus('');
+      
+      const response = await fetch('/api/topics/update-note', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topicId: topic._id,
+          note: note
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to save note');
+
+      // Show success message
+      setSaveStatus('success');
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSaveStatus('');
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error saving note:', error);
+      setSaveStatus('error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -160,6 +196,51 @@ const TopicDetail = ({ topic }) => {
               <li key={index}>{faq}</li>
             ))}
           </ul>
+        </div>
+
+        <div className="border rounded-lg p-4 bg-white shadow">
+          <h2 className="text-xl font-bold mb-4">Notes</h2>
+          <div className="space-y-4">
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Add your notes about this topic here..."
+              className="w-full h-32 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={handleNoteSave}
+                  disabled={isSaving}
+                  className={`
+                    px-4 py-2 rounded-lg font-medium
+                    bg-blue-600 text-white hover:bg-blue-700
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    transition-colors duration-200
+                  `}
+                >
+                  {isSaving ? 'Saving...' : 'Save Note'}
+                </button>
+                
+                {saveStatus === 'success' && (
+                  <span className="text-green-600">
+                    ✓ Note saved successfully
+                  </span>
+                )}
+                {saveStatus === 'error' && (
+                  <span className="text-red-600">
+                    Failed to save note. Please try again.
+                  </span>
+                )}
+              </div>
+
+              {note && topic.updated_at && (
+                <span className="text-sm text-gray-500">
+                  Last updated: {new Date(topic.updated_at).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
