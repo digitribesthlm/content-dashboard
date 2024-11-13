@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 export default function Home() {
   const router = useRouter();
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -31,6 +32,7 @@ export default function Home() {
 
   const handleLogin = useCallback(async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     setFormData(prev => ({ ...prev, error: '' }));
 
     try {
@@ -48,18 +50,23 @@ export default function Home() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push('/dashboard');
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
       } else {
         setFormData(prev => ({
           ...prev,
           error: data.message || 'Login failed'
         }));
+        setIsLoading(false);
       }
     } catch (err) {
+      console.error('Login error:', err);
       setFormData(prev => ({
         ...prev,
         error: 'An error occurred. Please try again.'
       }));
+      setIsLoading(false);
     }
   }, [formData.email, formData.password, router]);
 
@@ -131,9 +138,12 @@ export default function Home() {
               <div>
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  disabled={isLoading}
+                  className={`w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium ${
+                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  Login
+                  {isLoading ? 'Logging in...' : 'Login'}
                 </button>
               </div>
             </form>
