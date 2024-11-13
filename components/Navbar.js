@@ -29,12 +29,10 @@ export default function Navbar({ onLoginClick, isAuthenticated, onLogoutClick })
           </div>
           <div className="flex items-center space-x-8">
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-            <Link href="/selected-topics" className="text-gray-600 hover:text-gray-900">Selected Topics 3</Link>
+            <Link href="/selected-topics" className="text-gray-600 hover:text-gray-900">Selected Topics</Link>
             
             {/* Add debug info */}
-            <span className="text-xs text-gray-400">
-              Auth: {authState ? 'true' : 'false'}
-            </span>
+
             
             {authState ? (
               <button 

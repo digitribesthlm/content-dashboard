@@ -164,7 +164,7 @@ const TopicDetail = ({ topic }) => {
               Updating...
             </span>
           ) : (
-            status === 'active' ? 'Select for Review' : 'Mark as Active'
+            status === 'active' ? 'Select for Outline' : 'Mark as Active'
           )}
         </button>
       </div>
