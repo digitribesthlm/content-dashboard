@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import TopicDetail from '../../components/TopicDetail';
 import Layout from '../../components/Layout';
-import clientPromise from '../../utils/mongodb';
+import clientPromise from '../../src/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
 export default function TopicPage({ topic }) {
