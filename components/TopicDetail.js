@@ -4,6 +4,21 @@ import { useRouter } from 'next/router';
 const TopicDetail = ({ topic }) => {
   const router = useRouter();
   const [note, setNote] = useState(topic.note || '');
+  const [showCompetitorUrls, setShowCompetitorUrls] = useState(false);
+  const [showYoutubeUrls, setShowYoutubeUrls] = useState(false);
+  
+  const [competitorUrls, setCompetitorUrls] = useState(topic.competitorUrls?.urls || [
+    { id: 1, url: '', notes: '' },
+    { id: 2, url: '', notes: '' },
+    { id: 3, url: '', notes: '' }
+  ]);
+  
+  const [youtubeUrls, setYoutubeUrls] = useState(topic.youtubeUrls?.urls || [
+    { id: 1, url: '', notes: '' },
+    { id: 2, url: '', notes: '' },
+    { id: 3, url: '', notes: '' }
+  ]);
+  
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [status, setStatus] = useState(topic.status || 'active');
@@ -80,6 +95,47 @@ const TopicDetail = ({ topic }) => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleUrlUpdate = async () => {
+    try {
+      setIsSaving(true);
+      setSaveStatus('');
+      
+      const response = await fetch('/api/topics/update-urls', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topicId: topic._id,
+          competitorUrls,
+          youtubeUrls
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to save URLs');
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus(''), 3000);
+
+    } catch (error) {
+      console.error('Error saving URLs:', error);
+      setSaveStatus('error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const updateCompetitorUrl = (index, field, value) => {
+    const newUrls = [...competitorUrls];
+    newUrls[index] = { ...newUrls[index], [field]: value };
+    setCompetitorUrls(newUrls);
+  };
+
+  const updateYoutubeUrl = (index, field, value) => {
+    const newUrls = [...youtubeUrls];
+    newUrls[index] = { ...newUrls[index], [field]: value };
+    setYoutubeUrls(newUrls);
   };
 
   return (
@@ -243,6 +299,126 @@ const TopicDetail = ({ topic }) => {
           </div>
         </div>
       </div>
+
+      {/* Collapsible Competitor URLs Section */}
+      <div className="border rounded-lg p-4 bg-white shadow mt-6">
+        <button 
+          onClick={() => setShowCompetitorUrls(!showCompetitorUrls)}
+          className="w-full flex items-center justify-between text-xl font-bold mb-2"
+        >
+          <span>Competitor URLs</span>
+          <svg 
+            className={`w-6 h-6 transform transition-transform ${showCompetitorUrls ? 'rotate-180' : ''}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        {showCompetitorUrls && (
+          <div className="space-y-4 mt-4">
+            {competitorUrls.map((item, index) => (
+              <div key={item.id} className="space-y-2 p-4 border rounded">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    URL {index + 1}
+                  </label>
+                  <input
+                    type="url"
+                    value={item.url}
+                    onChange={(e) => updateCompetitorUrl(index, 'url', e.target.value)}
+                    placeholder="https://..."
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    value={item.notes}
+                    onChange={(e) => updateCompetitorUrl(index, 'notes', e.target.value)}
+                    placeholder="Additional notes"
+                    className="w-full p-2 border rounded h-20"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Collapsible YouTube URLs Section */}
+      <div className="border rounded-lg p-4 bg-white shadow mt-6">
+        <button 
+          onClick={() => setShowYoutubeUrls(!showYoutubeUrls)}
+          className="w-full flex items-center justify-between text-xl font-bold mb-2"
+        >
+          <span>YouTube URLs</span>
+          <svg 
+            className={`w-6 h-6 transform transition-transform ${showYoutubeUrls ? 'rotate-180' : ''}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        {showYoutubeUrls && (
+          <div className="space-y-4 mt-4">
+            {youtubeUrls.map((item, index) => (
+              <div key={item.id} className="space-y-2 p-4 border rounded">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    URL {index + 1}
+                  </label>
+                  <input
+                    type="url"
+                    value={item.url}
+                    onChange={(e) => updateYoutubeUrl(index, 'url', e.target.value)}
+                    placeholder="https://youtube.com/..."
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    value={item.notes}
+                    onChange={(e) => updateYoutubeUrl(index, 'notes', e.target.value)}
+                    placeholder="Additional notes"
+                    className="w-full p-2 border rounded h-20"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Save Button - only shown if either section is expanded */}
+      {(showCompetitorUrls || showYoutubeUrls) && (
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={handleUrlUpdate}
+            disabled={isSaving}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isSaving ? 'Saving...' : 'Save URLs'}
+          </button>
+          
+          {saveStatus === 'success' && (
+            <span className="text-green-600">✓ URLs saved successfully</span>
+          )}
+          {saveStatus === 'error' && (
+            <span className="text-red-600">Failed to save URLs. Please try again.</span>
+          )}
+        </div>
+      )}
     </div>
   );
 };
