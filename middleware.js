@@ -23,9 +23,8 @@ export function middleware(request) {
 export const config = {
   matcher: [
     '/',
-    '/dashboard/:path*',
-    '/selected-topics/:path*',
-    // Exclude API routes and static files
+    '/dashboard',
+    '/selected-topics',
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }; 
