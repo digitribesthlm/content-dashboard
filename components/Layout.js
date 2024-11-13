@@ -1,79 +1,49 @@
-import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
+import Navbar from './Navbar';
 
-const Layout = ({ children }) => {
+const Layout = ({ children, onLoginClick }) => {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const authToken = document.cookie.includes('auth-token');
+    setIsAuthenticated(authToken);
+  }, []);
+
+  const handleLogoutClick = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setIsAuthenticated(false);
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navigation */}
-      <nav className="bg-gray-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/" className="text-xl font-bold">
-                Content Dashboard
-              </Link>
-              <div className="ml-10 flex items-baseline space-x-4">
-                <Link 
-                  href="/" 
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-                >
-                  Overview
-                </Link>
-                <Link 
-                  href="/categories" 
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-                >
-                  Categories
-                </Link>
-                <Link 
-                  href="/selected-topics"
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-                >
-                  Selected Topics
-                </Link>
-                {/* Add more navigation items as needed */}
-              </div>
-            </div>
-            <div className="flex items-center">
-              {/* Add user profile or settings menu here */}
-              <span className="text-sm">Welcome, User</span>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="flex-grow bg-gray-50">
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          {children}
-        </div>
+      <Navbar 
+        onLoginClick={onLoginClick}
+        onLogoutClick={handleLogoutClick}
+        isAuthenticated={isAuthenticated}
+      />
+      <main className="flex-grow">
+        {children}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white">
+      <footer className="bg-gray-50 border-t border-gray-200">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm">© 2024 Content Dashboard. All rights reserved.</p>
-            </div>
-            <div className="flex space-x-6">
-              <Link 
-                href="/privacy" 
-                className="text-sm hover:text-gray-300"
-              >
-                Privacy Policy
-              </Link>
-              <Link 
-                href="/terms" 
-                className="text-sm hover:text-gray-300"
-              >
-                Terms of Service
-              </Link>
-              <Link 
-                href="/contact" 
-                className="text-sm hover:text-gray-300"
-              >
-                Contact
-              </Link>
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="text-gray-600">
+              © {new Date().getFullYear()} {process.env.NEXT_PUBLIC_BRAND_NAME}. All rights reserved.
             </div>
           </div>
         </div>

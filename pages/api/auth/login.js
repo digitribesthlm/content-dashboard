@@ -1,5 +1,5 @@
 // pages/api/auth/login.js
-import { connectToDatabase } from '../../../utils/mongodb';
+import clientPromise from '../../../utils/mongodb';
 import { serialize } from 'cookie';
 
 export default async function handler(req, res) {
@@ -9,7 +9,8 @@ export default async function handler(req, res) {
 
     try {
         const { email, password } = req.body;
-        const { db } = await connectToDatabase();
+        const client = await clientPromise;
+        const db = client.db(process.env.MONGODB_DB);
 
         const user = await db.collection('users').findOne({ email });
         

@@ -1,35 +1,35 @@
 export default function ServicesGrid() {
   const services = [
     {
-      title: "Performance Marketing",
-      description: "Strategic PPC campaigns across Google, Meta, LinkedIn, and more. Drive targeted traffic that converts."
+      title: "Topic Identification and Categorization",
+      description: "Strategic content planning and topic organization to establish clear content hierarchies and categories."
     },
     {
-      title: "Search Engine Optimization",
-      description: "Dominate search rankings with data-driven SEO strategies tailored to your market and audience."
+      title: "Keyword Research for Each Page",
+      description: "In-depth keyword analysis to identify the most valuable search terms and user intent for each content piece."
     },
     {
-      title: "Journey Optimization",
-      description: "Enhance every touchpoint of your customer journey with advanced analytics and optimization."
+      title: "Create Content Outlines",
+      description: "Develop comprehensive content structures and detailed outlines to guide content creation."
     },
     {
-      title: "International Growth",
-      description: "Expand your reach across 10 European markets with localized digital strategies."
+      title: "Generate Initial Content Drafts",
+      description: "Create high-quality first drafts based on research, outlines, and content strategy guidelines."
     },
     {
-      title: "Data & Analytics",
-      description: "Turn data into insights with comprehensive tracking and performance measurement."
+      title: "Enrich Content with Authority",
+      description: "Enhance content value with external links, multimedia, and authoritative sources."
     },
     {
-      title: "Strategy & Innovation",
-      description: "Custom digital strategies that align with your business goals and market dynamics."
+      title: "Final Review and Publishing",
+      description: "Quality assurance review, design integration, and strategic content distribution across channels."
     }
   ];
 
   return (
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-8">
-        <h2 className="text-4xl font-bold text-center mb-16">Full-Service Digital Growth</h2>
+        <h2 className="text-4xl font-bold text-center mb-16">Content Creation Workflow</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service, index) => (
@@ -47,4 +47,4 @@ export default function ServicesGrid() {
       </div>
     </section>
   );
-} 
+}

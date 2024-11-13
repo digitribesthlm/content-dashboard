@@ -1,15 +1,18 @@
 import Layout from '../components/Layout';
 import Link from 'next/link';
 import clientPromise from '../utils/mongodb';
+import { useRouter } from 'next/router';
 
 export default function SelectedTopics({ selectedTopics }) {
+  const router = useRouter();
+
   return (
     <Layout>
-      <div className="p-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex justify-between items-center">
           <h1 className="text-3xl font-bold">Selected Topics for Review</h1>
           <Link 
-            href="/"
+            href="/dashboard"
             className="text-blue-600 hover:text-blue-800"
           >
             ← Back to Overview
@@ -82,12 +85,21 @@ export default function SelectedTopics({ selectedTopics }) {
   );
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context) {
+  const authToken = context.req.cookies['auth-token'];
+  if (!authToken) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
+
   try {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
     
-    // Find all strategies with selected items
     const strategies = await db
       .collection("seo_topic_content_strategies")
       .find({
@@ -95,7 +107,6 @@ export async function getServerSideProps() {
       })
       .toArray();
 
-    // Extract selected topics from strategies
     const selectedTopics = strategies.reduce((acc, strategy) => {
       const selected = strategy.clientData.contentStrategy.items
         .filter(item => item.status === "selected");
