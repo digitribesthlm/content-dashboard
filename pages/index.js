@@ -33,50 +33,50 @@ export default function Home() {
 
   const handleLogin = useCallback(async (e) => {
     e.preventDefault();
+    console.log('Login attempt started');
     setIsLoading(true);
     setFormData(prev => ({ ...prev, error: '' }));
 
     try {
-      // Add timeout to fetch request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+        console.log('Sending login request...');
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: formData.email,
+                password: formData.password
+            }),
+        });
 
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        }),
-        signal: controller.signal
-      });
+        const data = await res.json();
+        console.log('Login response:', data);
 
-      clearTimeout(timeoutId);
-
-      const data = await res.json();
-
-      if (res.ok) {
-        router.push('/dashboard');
-      } else {
+        if (res.ok) {
+            console.log('Login successful, preparing redirect...');
+            setIsLoading(false);
+            // Add a small delay before redirect to ensure cookie is set
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 100);
+        } else {
+            console.log('Login failed:', data.message);
+            setFormData(prev => ({
+                ...prev,
+                error: data.message || 'Login failed'
+            }));
+            setIsLoading(false);
+        }
+    } catch (err) {
+        console.error('Login error:', err);
         setFormData(prev => ({
-          ...prev,
-          error: data.message || 'Login failed'
+            ...prev,
+            error: 'An error occurred. Please try again.'
         }));
         setIsLoading(false);
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      setFormData(prev => ({
-        ...prev,
-        error: err.name === 'AbortError' 
-          ? 'Request timed out. Please try again.'
-          : 'An error occurred. Please try again.'
-      }));
-      setIsLoading(false);
     }
-  }, [formData.email, formData.password, router]);
+}, [formData.email, formData.password]);
 
   const toggleLoginForm = useCallback(() => {
     setShowLoginForm(prev => !prev);
