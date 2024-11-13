@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 
 // Volume indicator component
@@ -47,32 +47,94 @@ const StatusIcon = ({ status }) => {
 
 const TopicOverview = ({ strategies }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFocus, setSelectedFocus] = useState([]);
+  const [selectedAudience, setSelectedAudience] = useState([]);
+  const filterRef = useRef(null);
 
-  // Group and filter strategies based on search
+  // Close filters when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setShowFilters(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Toggle filter selection (multiple selection)
+  const toggleFocus = (focus) => {
+    setSelectedFocus(prev => 
+      prev.includes(focus)
+        ? prev.filter(f => f !== focus)
+        : [...prev, focus]
+    );
+  };
+
+  const toggleAudience = (audience) => {
+    setSelectedAudience(prev => 
+      prev.includes(audience)
+        ? prev.filter(a => a !== audience)
+        : [...prev, audience]
+    );
+  };
+
+  // Get filter options with counts
+  const getFilterOptions = () => {
+    const focus = new Map();
+    const audience = new Map();
+
+    strategies.forEach(strategy => {
+      strategy.clientData?.contentStrategy?.items?.forEach(item => {
+        if (item.contentGuidelines?.focus) {
+          const focusValue = item.contentGuidelines.focus;
+          focus.set(focusValue, (focus.get(focusValue) || 0) + 1);
+        }
+        if (item.contentGuidelines?.targetAudience) {
+          const audienceValue = item.contentGuidelines.targetAudience;
+          audience.set(audienceValue, (audience.get(audienceValue) || 0) + 1);
+        }
+      });
+    });
+
+    return {
+      focus: Array.from(focus.entries()),
+      audience: Array.from(audience.entries())
+    };
+  };
+
+  const filterOptions = getFilterOptions();
+
+  // Filter strategies with OR logic
   const groupedStrategies = strategies.reduce((acc, strategy) => {
     if (!strategy.clientData?.contentStrategy?.items) return acc;
 
     strategy.clientData.contentStrategy.items.forEach(item => {
-      // Search across multiple fields
+      // Apply OR logic for filters
+      const matchesFocus = selectedFocus.length === 0 || 
+        selectedFocus.includes(item.contentGuidelines?.focus);
+      const matchesAudience = selectedAudience.length === 0 || 
+        selectedAudience.includes(item.contentGuidelines?.targetAudience);
+      
+      if (!matchesFocus && !matchesAudience) return;
+
+      // Apply search
       const searchFields = [
         item.selectedItem,
         item.mainFeature,
         item.category,
-        item.contentGuidelines?.focus,
-        item.contentGuidelines?.targetAudience,
-        item.contentGuidelines?.contentType,
         ...(item.longTerms || []),
         ...(item.relatedTerms || []),
       ].map(field => field?.toLowerCase() || '');
 
-      // Check if any field contains the search term
       if (searchTerm && !searchFields.some(field => field.includes(searchTerm.toLowerCase()))) {
         return;
       }
 
-      if (!acc[item.category]) {
-        acc[item.category] = {};
-      }
+      // Group items
+      if (!acc[item.category]) acc[item.category] = {};
       if (!acc[item.category][item.mainFeature]) {
         acc[item.category][item.mainFeature] = [];
       }
@@ -83,10 +145,11 @@ const TopicOverview = ({ strategies }) => {
 
   return (
     <div className="p-6">
-      {/* Search Section */}
-      <div className="mb-8 p-4 bg-white rounded-lg shadow">
-        <div className="max-w-2xl mx-auto">
-          <div className="relative">
+      {/* Fixed Search and Filter Section */}
+      <div className="sticky top-0 z-10 bg-white shadow-md rounded-lg mb-6">
+        <div className="p-4 max-w-2xl mx-auto">
+          {/* Search Bar */}
+          <div className="relative mb-2">
             <input
               type="text"
               value={searchTerm}
@@ -103,24 +166,133 @@ const TopicOverview = ({ strategies }) => {
               </button>
             )}
           </div>
-          {searchTerm && (
-            <div className="mt-2 text-sm text-gray-500">
-              Searching across titles, features, categories, and keywords
-            </div>
-          )}
+
+          {/* Filter Dropdown Button */}
+          <div className="relative" ref={filterRef}>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="w-full flex items-center justify-between px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                <span>Filters</span>
+                {(selectedFocus.length > 0 || selectedAudience.length > 0) && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {selectedFocus.length + selectedAudience.length}
+                  </span>
+                )}
+              </div>
+              <svg 
+                className={`w-5 h-5 transform transition-transform ${showFilters ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Filter Dropdown Panel */}
+            {showFilters && (
+              <div className="absolute left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border">
+                <div className="max-h-[600px] overflow-y-auto">
+                  {/* Focus Filters */}
+                  <div className="p-4 border-b">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-medium text-gray-700">Focus</h3>
+                      {selectedFocus.length > 0 && (
+                        <button
+                          onClick={() => setSelectedFocus([])}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Clear Focus
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {filterOptions.focus.map(([focus, count]) => (
+                        <label 
+                          key={focus} 
+                          className="flex items-start p-2 rounded hover:bg-gray-50 border cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedFocus.includes(focus)}
+                            onChange={() => toggleFocus(focus)}
+                            className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div className="ml-2">
+                            <span className="text-sm text-gray-800 block">{focus}</span>
+                            <span className="text-xs text-gray-500">({count} items)</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Audience Filters */}
+                  <div className="p-4 border-b">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-medium text-gray-700">Target Audience</h3>
+                      {selectedAudience.length > 0 && (
+                        <button
+                          onClick={() => setSelectedAudience([])}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Clear Audience
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {filterOptions.audience.map(([audience, count]) => (
+                        <label 
+                          key={audience} 
+                          className="flex items-start p-2 rounded hover:bg-gray-50 border cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedAudience.includes(audience)}
+                            onChange={() => toggleAudience(audience)}
+                            className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div className="ml-2">
+                            <span className="text-sm text-gray-800 block">{audience}</span>
+                            <span className="text-xs text-gray-500">({count} items)</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Footer with Clear All */}
+                  {(selectedFocus.length > 0 || selectedAudience.length > 0) && (
+                    <div className="p-3 bg-gray-50 text-center border-t">
+                      <button
+                        onClick={() => {
+                          setSelectedFocus([]);
+                          setSelectedAudience([]);
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Clear all filters
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Results Section */}
       {Object.keys(groupedStrategies).length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          {searchTerm ? (
-            <div>
-              <p className="text-lg">No results found for "{searchTerm}"</p>
-              <p className="mt-2 text-sm">Try different keywords or check the spelling</p>
-            </div>
-          ) : (
-            <p className="text-lg">No content available</p>
+          <p className="text-lg">No results found</p>
+          {(searchTerm || selectedFocus.length > 0 || selectedAudience.length > 0) && (
+            <p className="mt-2 text-sm">Try adjusting your search or filters</p>
           )}
         </div>
       ) : (
