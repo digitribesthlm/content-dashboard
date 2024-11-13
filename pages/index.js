@@ -1,3 +1,4 @@
+// pages/index.js
 import Layout from '../components/Layout.js';
 import ServicesGrid from '../components/ServicesGrid';
 import { useRouter } from 'next/router';
@@ -36,6 +37,10 @@ export default function Home() {
     setFormData(prev => ({ ...prev, error: '' }));
 
     try {
+      // Add timeout to fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -45,14 +50,15 @@ export default function Home() {
           email: formData.email,
           password: formData.password
         }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       const data = await res.json();
 
       if (res.ok) {
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 100);
+        router.push('/dashboard');
       } else {
         setFormData(prev => ({
           ...prev,
@@ -64,7 +70,9 @@ export default function Home() {
       console.error('Login error:', err);
       setFormData(prev => ({
         ...prev,
-        error: 'An error occurred. Please try again.'
+        error: err.name === 'AbortError' 
+          ? 'Request timed out. Please try again.'
+          : 'An error occurred. Please try again.'
       }));
       setIsLoading(false);
     }
@@ -159,4 +167,3 @@ export default function Home() {
     </Layout>
   );
 }
-

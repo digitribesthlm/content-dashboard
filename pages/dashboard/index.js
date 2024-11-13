@@ -1,3 +1,4 @@
+// pages/dashboard/index.js
 import Layout from '../../components/Layout';
 import TopicOverview from '../../components/TopicOverview';
 import { useRouter } from 'next/router';
