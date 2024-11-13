@@ -5,7 +5,7 @@ export function middleware(request) {
   const { pathname } = request.nextUrl;
   const authToken = request.cookies.get('auth-token');
 
-  // Protect dashboard and selected-topics routes
+  // Protected routes
   if (pathname.startsWith('/dashboard') || pathname.startsWith('/selected-topics')) {
     if (!authToken) {
       return NextResponse.redirect(new URL('/', request.url));
@@ -25,6 +25,5 @@ export const config = {
     '/',
     '/dashboard',
     '/selected-topics',
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
-}; 
+};

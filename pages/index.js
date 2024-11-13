@@ -33,12 +33,9 @@ export default function Home() {
 
   const handleLogin = useCallback(async (e) => {
     e.preventDefault();
-    console.log('Login attempt started');
     setIsLoading(true);
-    setFormData(prev => ({ ...prev, error: '' }));
 
     try {
-        console.log('Sending login request...');
         const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
@@ -50,33 +47,25 @@ export default function Home() {
             }),
         });
 
-        const data = await res.json();
-        console.log('Login response:', data);
-
         if (res.ok) {
-            console.log('Login successful, preparing redirect...');
-            setIsLoading(false);
-            // Add a small delay before redirect to ensure cookie is set
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 100);
+            window.location.href = '/dashboard';  // Use window.location instead of router
         } else {
-            console.log('Login failed:', data.message);
+            const data = await res.json();
             setFormData(prev => ({
                 ...prev,
                 error: data.message || 'Login failed'
             }));
-            setIsLoading(false);
         }
-    } catch (err) {
-        console.error('Login error:', err);
+    } catch (error) {
+        console.error('Login error:', error);
         setFormData(prev => ({
             ...prev,
-            error: 'An error occurred. Please try again.'
+            error: 'An error occurred'
         }));
+    } finally {
         setIsLoading(false);
     }
-}, [formData.email, formData.password]);
+  }, [formData.email, formData.password]);
 
   const toggleLoginForm = useCallback(() => {
     setShowLoginForm(prev => !prev);

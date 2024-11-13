@@ -1,7 +1,8 @@
 // pages/selected-topics.js
 import Layout from '../components/Layout';
 import Link from 'next/link';
-import clientPromise from '../src/lib/mongodb';
+import clientPromise from '@/src/lib/mongodb';  // Using @ alias for root
+
 import { useRouter } from 'next/router';
 
 export default function SelectedTopics({ selectedTopics }) {

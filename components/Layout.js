@@ -8,8 +8,20 @@ const Layout = ({ children, onLoginClick }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const authToken = document.cookie.includes('auth-token');
-    setIsAuthenticated(authToken);
+    // Check authentication status
+    const checkAuth = () => {
+      const hasAuthToken = document.cookie.includes('auth-token');
+      setIsAuthenticated(hasAuthToken);
+    };
+
+    // Initial check
+    checkAuth();
+
+    // Set up interval to check auth status
+    const interval = setInterval(checkAuth, 1000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogoutClick = async () => {
@@ -22,8 +34,10 @@ const Layout = ({ children, onLoginClick }) => {
       });
 
       if (response.ok) {
+        // Clear auth state
         setIsAuthenticated(false);
-        router.push('/');
+        // Force reload to clear any cached state
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -53,4 +67,4 @@ const Layout = ({ children, onLoginClick }) => {
   );
 };
 
-export default Layout; 
+export default Layout;

@@ -1,4 +1,5 @@
-import clientPromise from '../../../src/lib/mongodb';
+import clientPromise from '@/src/lib/mongodb';  // Using @ alias for root
+
 import { ObjectId } from 'mongodb';
 
 export default async function handler(req, res) {

@@ -3,7 +3,8 @@ import Layout from '../../components/Layout';
 import TopicOverview from '../../components/TopicOverview';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import clientPromise from '../../src/lib/mongodb';
+import clientPromise from '@/src/lib/mongodb';  // Using @ alias for root
+
 
 export default function Dashboard({ strategies, error }) {
   const router = useRouter();
