@@ -24,6 +24,27 @@ const VolumeIndicator = ({ volume }) => {
   );
 };
 
+// New Status Icon component
+const StatusIcon = ({ status }) => {
+  if (status !== 'selected') return null;
+  
+  return (
+    <span 
+      className="inline-flex items-center ml-2 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+      title="Selected for review"
+    >
+      <svg 
+        className="w-4 h-4" 
+        fill="currentColor" 
+        viewBox="0 0 20 20"
+      >
+        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+      </svg>
+    </span>
+  );
+};
+
 const TopicOverview = ({ strategies }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -114,13 +135,18 @@ const TopicOverview = ({ strategies }) => {
                     {items.map((item) => (
                       <li key={item._id} className="hover:bg-gray-50 p-2 rounded">
                         <div className="flex items-center justify-between">
-                          <Link 
-                            href={`/topic/${item._id}`}
-                            className="text-blue-600 hover:underline block flex-grow"
-                          >
-                            {item.selectedItem}
-                            <VolumeIndicator volume={item.metrics?.volume} />
-                          </Link>
+                          <div className="flex items-center flex-grow">
+                            <Link 
+                              href={`/topic/${item._id}`}
+                              className="text-blue-600 hover:underline flex-grow"
+                            >
+                              {item.selectedItem}
+                            </Link>
+                            <div className="flex items-center">
+                              <VolumeIndicator volume={item.metrics?.volume} />
+                              <StatusIcon status={item.status} />
+                            </div>
+                          </div>
                         </div>
                         <div className="text-sm text-gray-500 mt-1">
                           {item.contentGuidelines?.focus && (
@@ -140,12 +166,18 @@ const TopicOverview = ({ strategies }) => {
         ))
       )}
 
-      {/* Legend for the volume indicator */}
+      {/* Legend */}
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Legend:</h4>
-        <div className="flex items-center">
-          <VolumeIndicator volume={10} />
-          <span className="ml-2 text-sm text-gray-600">Indicates search volume</span>
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center">
+            <VolumeIndicator volume={10} />
+            <span className="ml-2 text-sm text-gray-600">Indicates search volume</span>
+          </div>
+          <div className="flex items-center">
+            <StatusIcon status="selected" />
+            <span className="ml-2 text-sm text-gray-600">Selected for review</span>
+          </div>
         </div>
       </div>
     </div>
